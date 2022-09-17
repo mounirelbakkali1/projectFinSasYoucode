@@ -28,7 +28,8 @@ bool isExist(Produit *list,int code ,char nom[],int index){
 	
 }
 float calculateTTC(float prix){
-	return (prix + (15/100)*prix);
+	//printf("ttc:%f",(prix + (float)(15/100)*prix));
+	return (prix + ((float)15/(float)100)*prix);
 }
 void ajouterUnProduit(Produit *list,int *index){
 	bool valid;
@@ -56,7 +57,7 @@ void ajouterUnProduit(Produit *list,int *index){
 		}
 		printf("\t*QUANTITE : ");
 		scanf(" %d",&list[*index].quantite);
-		printf("\t*PRIX %d: ",*index);
+		printf("\t*PRIX : ");
 		scanf(" %f",&list[*index].prix);
 		if(list[*index].quantite==0 || list[*index].prix==0) {
 			printf(BR);
@@ -111,21 +112,23 @@ void listerLesProduits(Produit *list,int *index){
 	printf(BR);
 	switch(choix){
 		case 1 :
+			//printf("`\t prd 1 code : %d\n",list[0].code);
+			//printf("`\t prd 2 code : %d\n",list[1].code);
 			printf(LINE);
 			printf("\t NOM        |       PRIX         |       PRIX TTC\n");
-			printf("--%d\n",*index);
+			//printf("--%d\n",*index);
 			for(i=0;i<*index;i++){
 				
-				for(j=0;j<*index;j++){
+				for(j=i+1;j<*index;j++){
 					//printf("---j=%d\n",j);
 					int cmpInASCII = strcmp(list[i].nom,list[j].nom);
+					//printf("cmpInASCII :%d",cmpInASCII);
 					if(cmpInASCII>0){
 						Produit temp=list[i];
 						list[i]=list[j];
 						list[j]=temp;
 					}
 				}
-				printf("---i=%d\n",i);
 				printf("\t  %s         |      %.2f DH      |       %.2f DH     \n",list[i].nom,list[i].prix,calculateTTC(list[i].prix));
 				
 			}
@@ -153,7 +156,7 @@ int main() {
 	printf(LINE);
 	printf(BR);
 	do{
-		printf("num :%d",num);
+		//printf("num :%d",num);
 		printf(BR);
 		printf("\t1  : Ajouter un nouveau produit.\n");
 		printf("\t2  : Ajouter plusieurs nouveaux produits.\n");
