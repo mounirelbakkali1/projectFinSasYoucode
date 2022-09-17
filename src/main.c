@@ -5,7 +5,8 @@
 #define BR "\n"
 #define TB "\t"
 #define LINE "\t---------------------------------------------------\n"
-#define HLINE "\t            ----          \n"
+#define HLINE "\n\t                ---------------          \n\n"
+#define LongLine "\t----------------------------------------------------------------------\n"
 /* run this program using the console pauser or add your own getch, system("pause") or input loop */
 typedef struct  Produits{
 	int code ;
@@ -30,6 +31,31 @@ bool isExist(Produit *list,int code ,char nom[],int index){
 float calculateTTC(float prix){
 	//printf("ttc:%f",(prix + (float)(15/100)*prix));
 	return (prix + ((float)15/(float)100)*prix);
+}
+void PrintTableInOrder(Produit *list,int *index,int indice){
+	int i,j;
+	printf(LINE);
+			printf("\t NOM          |       PRIX         |       PRIX TTC\n");
+			//printf("--%d\n",*index);
+			for(i=0;i<*index;i++){
+				
+				for(j=i+1;j<*index;j++){
+					//printf("---j=%d\n",j);
+					//int cmpInASCII = strcmp(list[i].nom,list[j].nom);
+					//int cmpInASCII=list[i].prix-list[j].prix;
+					//printf("cmpInASCII :%d",cmpInASCII);
+					int val;
+					val = (indice==1) ? strcmp(list[i].nom,list[j].nom) :list[i].prix-list[j].prix;
+					if(val>0){
+						Produit temp=list[i];
+						list[i]=list[j];
+						list[j]=temp;
+					}
+				}
+				printf("\t  %s                %.2f DH              %.2f DH     \n",list[i].nom,list[i].prix,calculateTTC(list[i].prix));
+				
+			}
+			printf(LINE);
 }
 void ajouterUnProduit(Produit *list,int *index){
 	bool valid;
@@ -71,7 +97,7 @@ void ajouterUnProduit(Produit *list,int *index){
 		
 	}while(!valid);
 	if(valid) {
-		printf("\n\t----[Produit ajoute avec sucess]----\n\n");
+		printf("\n\t--------   [Produit ajoute avec sucess]   -------\n\n");
 		++*index;
 	}	
 }
@@ -97,9 +123,7 @@ void ajouterPlusieurPrd(Produit *list,int *index){
 }
 
 void listerLesProduits(Produit *list,int *index){
-	
 	int choix,i,j ;
-	
 	printf(BR);
 	printf(HLINE);
 	printf("\t1 : Lister selon l'order alphabetique croissant de nom .\n");
@@ -111,34 +135,81 @@ void listerLesProduits(Produit *list,int *index){
 	scanf("%d",&choix);
 	printf(BR);
 	switch(choix){
-		case 1 :
-			//printf("`\t prd 1 code : %d\n",list[0].code);
-			//printf("`\t prd 2 code : %d\n",list[1].code);
-			printf(LINE);
-			printf("\t NOM        |       PRIX         |       PRIX TTC\n");
-			//printf("--%d\n",*index);
-			for(i=0;i<*index;i++){
-				
-				for(j=i+1;j<*index;j++){
-					//printf("---j=%d\n",j);
-					int cmpInASCII = strcmp(list[i].nom,list[j].nom);
-					//printf("cmpInASCII :%d",cmpInASCII);
-					if(cmpInASCII>0){
-						Produit temp=list[i];
-						list[i]=list[j];
-						list[j]=temp;
-					}
-				}
-				printf("\t  %s         |      %.2f DH      |       %.2f DH     \n",list[i].nom,list[i].prix,calculateTTC(list[i].prix));
-				
-			}
-			printf(LINE);
-			
-			
-			
-			
-			
+		case 1 :	
+			PrintTableInOrder(list,index,1);
+			break;
+		case 2 :
+			PrintTableInOrder(list,index,2);
+			break;
+		case 0 :
+			break;
+		default :
+			printf("\tchoix invalid !\n\n");
+			printf("\tretour au menu principale...\n\n");
+			sleep(1);
+			break;			
 	}
+	
+}
+
+Produit chercheUnPrd(Produit *list ,int *index,int code){
+	Produit t[1];
+	int i;
+	for(i=0;i<*index;i++){
+		if(list[i].code == code) return list[i];
+	}
+}
+
+void acheterUnPrd(Produit *list,int *index){
+	int code,quantite,valider,rep;
+	printf(BR);
+	printf(HLINE);
+	printf("\tVeillez remplire les infos de produits a acheter :\n");
+	printf("\t|code de produit :");
+	scanf("%d",&code);
+	printf("\t|quantite  :");
+	scanf("%d",&quantite);
+	printf(BR);
+	printf("\t PRODUIT DESIRE : \n");
+	printf(BR);
+	
+	Produit prdDesire = chercheUnPrd(list,index,code);
+	printf(LongLine);
+	printf("\t NOM          |       PRIX TTC       |     Quantite  |    Total  \n");
+	printf("\t %s                     %.2f DH              %d           %.2f DH     \n",prdDesire.nom,calculateTTC(prdDesire.prix),quantite,calculateTTC(prdDesire.prix)*quantite);
+	printf(LongLine);
+	printf(BR);
+	printf("\t1 : valider la commande \n");
+	printf("\t2 : chercher un nouveau produit \n");
+	printf("\t0 : retour au menu principal \n");
+	printf(BR);
+	printf("\t | ");
+	scanf("%d",&valider);
+	if(valider==1){
+		//valider la commande
+		if(prdDesire.quantite>=quantite){
+			printf("\n\t--------   [Commande valide avec sucess]   -------\n\n");
+			printf("\t1 : acheter un nouveau produit \n");
+			printf("\t0 : retour au menu principal \n");
+			printf("\t | ");
+			scanf("%d",&rep);
+			(rep==1) ? acheterUnPrd(list,index) : printf("\n\tRetour au menu principal...\n\n");
+		}else{
+			printf(BR);
+			printf("\t  [error] :stock insufisant (%d unitée restant) !\n",prdDesire.quantite);
+			printf(BR);
+			printf(HLINE);
+			printf("\t1 : acheter a moin quantite produit / changer le produit \n");
+			printf("\t0 : retour au menu principal \n");
+			printf("\t | ");
+			scanf("%d",&rep);
+			(rep==1) ? acheterUnPrd(list,index) : printf("\n\tRetour au menu principal...\n\n");
+			printf(BR);
+		}
+	}else if(valider==2){
+		acheterUnPrd(list,index);
+	}else return 0;
+	
 	
 }
 
@@ -158,6 +229,8 @@ int main() {
 	do{
 		//printf("num :%d",num);
 		printf(BR);
+		printf("\t----------------- MENU PRINCIPAL -------------------\n");
+		printf(BR);
 		printf("\t1  : Ajouter un nouveau produit.\n");
 		printf("\t2  : Ajouter plusieurs nouveaux produits.\n");
 		printf("\t3  : Lister les produits.\n");
@@ -168,6 +241,8 @@ int main() {
 		printf("\t8  : Supprimer un produit.\n");
 		printf("\t9  : Ajouter un produit\n");
 		printf("\t10 : Afficher les statistiques de vente.\n");
+		printf(BR);
+		printf(LINE);
 		printf(BR);
 		printf("\tVeulliez selectionez un choix pour continuer... : ");
 		scanf("%d",&choix);
@@ -185,6 +260,7 @@ int main() {
 				listerLesProduits(listDesProduits,&num);
 				break;
 			case 4 :
+				acheterUnPrd(listDesProduits,&num);
 				break;
 			case 5 :
 				break;
@@ -202,11 +278,19 @@ int main() {
 				printf(BR);
 				printf("\tfermeture de program..");
 				sleep(1);
-				printf(BR);
-				printf("\t---------------- 	PROGRAM FERME -----------------\n"); 
+				printf(BR);printf(BR);
+				printf("\t------------------ PROGRAM FERME ------------------\n");
+				printf("\t|");
+				printf("\t                                           |\n");
+				printf("\t|              Hope you enjoy usig it              |\n");
+				printf("\t|");
+				printf("\t                                           |\n");
+				printf(LINE);
+				break;
 			default:
-				printf(BR);
-				printf("\tchoix non trouvé !\n");
+				printf("\tchoix invalid !\n\n");
+				printf("\tretour au menu principale...\n\n");
+				sleep(1);
 				break;
 				
 		}
