@@ -124,12 +124,14 @@ void ajouterUnProduit(Produit *list,int *index){
 	if(valid) {
 		printf("\n\t--------   [Produit ajoute avec sucess]   -------\n\n");
 		// add to file :
-		fp = fopen("produits.txt","w");
-		//fprintf(fp,"%s",list[*index].nom);
-		fwrite(&list[*index], sizeof(Produit), 1, fp);
+		
+		
+		
+		
+		
 		
 		++*index;
-		fclose(fp);
+	
 	}else{
 		printf("\t  [error] :coordonees invalid (%essai fois) !\n",essai);
 	}	
@@ -179,7 +181,7 @@ void listerLesProduits(Produit *list,int *index){
 		default :
 			printf("\tchoix invalid !\n\n");
 			printf("\tretour au menu principale...\n\n");
-			sleep(1);
+		//	sleep(1);
 			break;			
 	}
 	printf(BR);
@@ -190,7 +192,7 @@ void listerLesProduits(Produit *list,int *index){
 	if(choix==1)  listerLesProduits(list,index);
 	printf(BR);
 	printf("\n\tRetour au menu principal...\n\n");
-	sleep(1);
+	//sleep(1);
 	
 	
 }
@@ -312,7 +314,7 @@ void afficherLesStatistic(Statistics *stst,int *indexOfstst){
 	printf("\tTotal des prix des produits vendus en journee courante : ");
 	printf("%.2f DH\n",totalttc);
 	printf("\tMoyenne des prix des produits vendus en journee courante : ");
-	printf("%.2f DH\n",totalttc/i);
+	printf("%.2f DH\n",totalttc/(float)i);
 	printf("\tMax des prix des produits vendus en journee courante : ");
 	printf("%.2f DH\n",max);
 	printf("\tMin des prix des produits vendus en journee courante : ");
@@ -322,7 +324,7 @@ void afficherLesStatistic(Statistics *stst,int *indexOfstst){
 	printf("\t | ");
 	scanf("%d",&retour);
 	printf("\n\tRetour au menu principal...\n\n");
-	sleep(1);
+	//sleep(1);
 	
 }
 void printSearchedPrd(Produit *list ,int *index,int *prdIndex){
@@ -452,16 +454,26 @@ int main() {
 	int choix,num=0,indexStst=0,i;
 	Produit listDesProduits[1000];
 	Statistics statisticsDeVentes[1000];
-	
-	
+
 	// files 
-	  
- 
+	  	char c;
+ 		char name[20],code[20];
+ 		float price;
+ 		int qnt;
+ 		FILE *fp;
+        fp = fopen("produits.txt","r");
+        while((c = getchar())  !=EOF){
+        	
+        	fscanf(fp, "%s %s %f %d", name, code, &price, &qnt);
+        	//if(getchar() == EOF) break;
+		}
+		
+		printf("%s %s %f %d\n",name,code,price,qnt);
+		fclose(fp);
          
-         
 	
 	
-	
+	/*
 	
 	// app introdution 
 	printf(BR);
@@ -544,6 +556,6 @@ int main() {
 				
 		}	
 	}while(choix!=0);
-	
+	*/
 	return 0;
 }
