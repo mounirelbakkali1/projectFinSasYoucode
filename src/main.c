@@ -10,7 +10,6 @@
 #define HLINE "\n\t                ---------------          \n\n"
 #define MIDLINE "\t----------------------------------------------------\n"
 #define LongLine "\t----------------------------------------------------------------------------\n"
-/* run this program using the console pauser or add your own getch, system("pause") or input loop */
 typedef struct  Produits{
 	char code[20];
 	char nom[20];
@@ -46,7 +45,7 @@ float calculateTTC(float prix){
 	//printf("ttc:%f",(prix + (float)(15/100)*prix));
 	return (prix + ((float)15/(float)100)*prix);
 }
-char * toUpperCase(char *str){
+char * toLowerCase(char *str){
 	int i=0;
 	for(i=0; i<strlen(str);i++){
 		str[i]=tolower(str[i]);
@@ -58,19 +57,15 @@ void PrintTableInOrder(Produit *list,int *index,int indice){
 	int i,j;
 			printf(LINE);
 			if(indice==3){
-				printf("\t    NOM            |        PRIX           |       PRIX TTC      |     QUANTITE     \n");
+				 printf("\t    NOM            |       PRIX TTC      |      QUANTITE     \n");
 			}
 			else printf("\t    NOM            |        PRIX           |       PRIX TTC  \n");
 			//printf("--%d\n",*index);
 			for(i=0;i<*index;i++){
 				
 				for(j=i+1;j<*index;j++){
-					//printf("---j=%d\n",j);
-					//int cmpInASCII = strcmp(list[i].nom,list[j].nom);
-					//int cmpInASCII=list[i].prix-list[j].prix;
-					//printf("cmpInASCII :%d",cmpInASCII);
 					int val;
-					val = (indice==1) ? strcmp(toUpperCase(list[i].nom) , toUpperCase(list[j].nom)) :list[i].prix-list[j].prix;
+					val = (indice==1) ? strcmp(toLowerCase(list[i].nom) , toLowerCase(list[j].nom)) :list[i].prix-list[j].prix;
 					if(val>0){
 						Produit temp=list[i];
 						list[i]=list[j];
@@ -78,12 +73,10 @@ void PrintTableInOrder(Produit *list,int *index,int indice){
 					}
 				}
 				if(indice==3){
-				printf("\t     %s                   %.2f DH                %.2f DH                 %d         \n",list[i].nom,list[i].prix,calculateTTC(list[i].prix),list[i].quantite);
+				printf("\t     %s                   %.2f DH                 %d         \n",list[i].nom,calculateTTC(list[i].prix),list[i].quantite);
 				}else{
 				printf("\t     %s                   %.2f DH                %.2f DH       \n",list[i].nom,list[i].prix,calculateTTC(list[i].prix));
-				}
-				
-				
+				}			
 			}
 			printf(LINE);
 }
@@ -132,8 +125,8 @@ void ajouterUnProduit(Produit *list,int *index){
 		printf("\n\t--------   [Produit ajoute avec sucess]   -------\n\n");
 		// add to file :
 		fp = fopen("produits.txt","w");
-		fprintf(fp,"%s",list[*index].nom);
-		
+		//fprintf(fp,"%s",list[*index].nom);
+		fwrite(&list[*index], sizeof(Produit), 1, fp);
 		
 		++*index;
 		fclose(fp);
@@ -266,7 +259,7 @@ void acheterUnPrd(Produit *list,int *index,Statistics *stst,int *indexOfstst){
 			printf("\n\t--------   [Commande valide avec sucess]   -------\n\n");	
 			time_t dateDachat;
 			dateDachat = time(NULL);
-			printf("date :%s",ctime(&dateDachat));
+			//printf("date :%s",ctime(&dateDachat));
 			// ADDING SELL TO STATISTICS
 			strcpy(stst[*indexOfstst].dateDAchat,ctime(&dateDachat));
 			strcpy(stst[*indexOfstst].nomPrdVendu,list[prdIndex].nom);
@@ -316,13 +309,13 @@ void afficherLesStatistic(Statistics *stst,int *indexOfstst){
 	}
 	printf(LongLine);
 	printf(BR);
-	printf("\tTotal des prix des produits vendus en journée courante : ");
+	printf("\tTotal des prix des produits vendus en journee courante : ");
 	printf("%.2f DH\n",totalttc);
-	printf("\tMoyenne des prix des produits vendus en journée courante : ");
+	printf("\tMoyenne des prix des produits vendus en journee courante : ");
 	printf("%.2f DH\n",totalttc/i);
-	printf("\tMax des prix des produits vendus en journée courante : ");
+	printf("\tMax des prix des produits vendus en journee courante : ");
 	printf("%.2f DH\n",max);
-	printf("\tMin des prix des produits vendus en journée courante : ");
+	printf("\tMin des prix des produits vendus en journee courante : ");
 	printf("%.2f DH\n",min);
 	printf(BR);
 	printf("\t0 : retour au menu principal \n");
@@ -402,7 +395,7 @@ void alimenterLeStock(Produit *list,int *index){
 	printf(BR);
 	printf("\tCode de produit a alimenter : ");
 	scanf("%s",code);
-	printf("\tCode de produit a alimenter : ");
+	printf("\tQuantite a alimenter : ");
 	scanf("%d",&qntEntre);
 	for(i=0;i<*index;i++){
 		if(strcmp(list[i].code,code)==0){
@@ -426,7 +419,7 @@ void supprimerUnProduit(Produit *list ,int *index){
 	printf("\tCode de produit  | ");
 	scanf("%s",code);
 	Produit prd =chercheUnPrd(list ,index,code,&position,"code");
-	printf("%d",position);
+	//printf("%d",position);
 	//printf(list[position].nom);
 	if(list[position].quantite==0){
 		printf(BR);
@@ -435,12 +428,12 @@ void supprimerUnProduit(Produit *list ,int *index){
 		printf(LINE);
 		supprimerUnProduit(list,index);
 	}else{
-		if(position==0) {
+		if(position==0&&*index==0) {
 			list[position] = list[position+1]; 
 			--*index;
 		}
 		else{
-			for (i = position-1; i < *index-1; i++)  
+			for (i = position; i < *index; i++)  
 	        {  
 	            list[i] = list[i+1]; 
 	        }
@@ -460,13 +453,23 @@ int main() {
 	Produit listDesProduits[1000];
 	Statistics statisticsDeVentes[1000];
 	
-	//int *a = malloc(sizeof(Produit) * n); //pour avoir une taille de list elastique
+	
+	// files 
+	  
+ 
+         
+         
+	
+	
+	
 	
 	// app introdution 
 	printf(BR);
-	printf(LINE);
+	printf(MIDLINE);
 	printf("\t|            GESTION DE PHARMACIE                  |\n");
-	printf(LINE);
+	printf("\t|                                                  |\n");
+	printf("\t|                  By mounir                       |\n");
+	printf(MIDLINE);
 	printf(BR);
 	do{
 		//printf("num :%d",num);
@@ -531,7 +534,7 @@ int main() {
 				printf("\t|              Hope you enjoy usig it              |\n");
 				printf("\t|");
 				printf("\t                                           |\n");
-				printf(LINE);
+				printf(MIDLINE);
 				break;
 			default:
 				printf("\tchoix invalid !\n\n");
@@ -542,7 +545,5 @@ int main() {
 		}	
 	}while(choix!=0);
 	
-/*	for(details_t* it = emp_details; (*it).name != NULL; it++)
-//  { printf("..", (*it).name, (*it).data); }*/
 	return 0;
 }
