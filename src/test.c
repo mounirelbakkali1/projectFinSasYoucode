@@ -2,17 +2,15 @@
 #include <stdlib.h>
 #include <string.h>
 #include <stdbool.h>
-#include <ctype.h>
 #include <time.h>
 #define BR "\n"
 #define TB "\t"
 #define LINE "\t-------------------------------------------------------------\n"
 #define HLINE "\n\t                ---------------          \n\n"
-#define MID "\t----------------------------------------------------\n"
 #define LongLine "\t----------------------------------------------------------------------------\n"
 /* run this program using the console pauser or add your own getch, system("pause") or input loop */
 typedef struct  Produits{
-	char code[20] ;
+	int code ;
 	char nom[20];
 	int quantite ;
 	float prix;
@@ -23,13 +21,13 @@ typedef struct Statistics{
 	float prix;
 	float totalTTC;
 }Statistics;
-bool isExist(Produit *list,char code[] ,char nom[],int index){
+bool isExist(Produit *list,int code ,char nom[],int index){
 	bool exist=false;
 	//printf("\ttest de %d \n",code);
 	int i;
 	for(i=0;i<index;i++){
 	//	printf("\t--test de %d \n",code==list[i].code);
-		if(strcmp(list[i].code,code)==0 || strcmp(list[i].nom,nom)==0){
+		if(list[i].code==code || strcmp(list[i].nom,nom)==0){
 			return true ;
 			break;
 		}
@@ -41,19 +39,10 @@ float calculateTTC(float prix){
 	//printf("ttc:%f",(prix + (float)(15/100)*prix));
 	return (prix + ((float)15/(float)100)*prix);
 }
-void PrintTableInOrder(Produit *list,int *index,int indice){ // if indice > 3 en va afficher aussi la quantite
+void PrintTableInOrder(Produit *list,int *index,int indice){
 	int i,j;
-			printf(LongLine);
-			if(indice==3){
-				printf("\t    NOM            |        PRIX           |       PRIX TTC    |    QUANTITE   \n");
-			}else{
-				printf("\t    NOM            |        PRIX           |       PRIX TTC  \n");
-			}
-			if(*index==0){
-				printf(BR);
-				printf("\t|                              table vide                                   |\n");
-				printf(BR);
-			}
+			printf(LINE);
+			printf("\t    NOM            |        PRIX           |       PRIX TTC  \n");
 			//printf("--%d\n",*index);
 			for(i=0;i<*index;i++){
 				
@@ -70,16 +59,10 @@ void PrintTableInOrder(Produit *list,int *index,int indice){ // if indice > 3 en
 						list[j]=temp;
 					}
 				}
+				printf("\t     %s                   %.2f DH                %.2f DH       \n",list[i].nom,list[i].prix,calculateTTC(list[i].prix));
 				
-				if(indice==3){
-					printf("\t     %s                   %.2f DH                %.2f DH            %d   \n",list[i].nom,list[i].prix,calculateTTC(list[i].prix),list[i].quantite);
-
-				}else{
-					printf("\t     %s                   %.2f DH                %.2f DH       \n",list[i].nom,list[i].prix,calculateTTC(list[i].prix));
-
-				}
 			}
-			printf(LongLine);
+			printf(LINE);
 }
 void ajouterUnProduit(Produit *list,int *index){
 	bool valid,essai=0;
@@ -91,7 +74,7 @@ void ajouterUnProduit(Produit *list,int *index){
 		printf("\tNotez : Tous les champs sont requis pour valider la formule\n");
 		printf(BR);
 		printf("\t*CODE : ");
-		scanf(" %s",&list[*index].code);
+		scanf(" %d",&list[*index].code);
 		//gets(list[index].code);
 		//getint(list[index].code);
 		printf("\t*NOM : ");
@@ -179,18 +162,14 @@ void listerLesProduits(Produit *list,int *index){
 	}
 	
 }
-//Produit chercherParCode(Produit *list ,int *index ,char code[])
 
-Produit chercheUnPrd(Produit *list ,int *index,char code[],int *prdIndex,char chercherPar[]){
-	printf(code);
+Produit chercheUnPrd(Produit *list ,int *index,int code,int *prdIndex,char chercherPar[]){
 	Produit t;
-	strcpy(t.nom,NULL);
-	char qntInChar[20];
 	int i;
 	for(i=0;i<*index;i++){
 		if(strcmp(chercherPar,"code")==0){
-			if(strcmp(list[i].code , code)==0) {
-				printf("inside");
+			if(list[i].code == code) {
+			//	printf("inside");
 			*prdIndex=i;
 			return list[i];
 			}
@@ -200,8 +179,7 @@ Produit chercheUnPrd(Produit *list ,int *index,char code[],int *prdIndex,char ch
 				return t;
 			}
 		}else if(strcmp(chercherPar,"quantite")==0) {
-			//printf("qnt:%d",atoi(code));
-			if(list[i].quantite==atoi(code)) { //atoi to convert char[] to int 
+			if(list[i].quantite == code) {
 			*prdIndex=i;
 			return list[i];
 			}
@@ -216,14 +194,13 @@ Produit chercheUnPrd(Produit *list ,int *index,char code[],int *prdIndex,char ch
 }
 
 void acheterUnPrd(Produit *list,int *index,Statistics *stst,int *indexOfstst){
-	char code[20];
-	int quantite,valider,rep;
+	int code,quantite,valider,rep;
 	int prdIndex=0;
 	printf(BR);
 	printf(HLINE);
 	printf("\tVeillez remplire les infos de produits a acheter :\n");
 	printf("\t|code de produit :");
-	scanf("%s",code);
+	scanf("%d",&code);
 	printf("\t|quantite  :");
 	scanf("%d",&quantite);
 	printf(BR);
@@ -298,13 +275,13 @@ void afficherLesStatistic(Statistics *stst,int *indexOfstst){
 	}
 	printf(LongLine);
 	printf(BR);
-	printf("\tTotal des prix des produits vendus en journee courante : ");
+	printf("\tTotal des prix des produits vendus en journée courante : ");
 	printf("%.2f DH\n",totalttc);
-	printf("\tMoyenne des prix des produits vendus en journee courante : ");
+	printf("\tMoyenne des prix des produits vendus en journée courante : ");
 	printf("%.2f DH\n",totalttc/i);
-	printf("\tMax des prix des produits vendus en journee courante : ");
+	printf("\tMax des prix des produits vendus en journée courante : ");
 	printf("%.2f DH\n",max);
-	printf("\tMin des prix des produits vendus en journee courante : ");
+	printf("\tMin des prix des produits vendus en journée courante : ");
 	printf("%.2f DH\n",min);
 	printf(BR);
 	printf("\t0 : retour au menu principal \n");
@@ -314,9 +291,8 @@ void afficherLesStatistic(Statistics *stst,int *indexOfstst){
 	sleep(1);
 	
 }
-void printSearchedPrd(Produit *list ,int *index){
-	int choix,qntEntre,prdIndex=0;
-	char codeEntre[20];
+void printSearchedPrd(Produit *list ,int *index,int *prdIndex){
+	int choix,codeEntre,qntEntre;
 	Produit returnedPrd ;
 	printf(HLINE);
 	printf("\t             CHERCHER UN PRODUIT              \n");
@@ -328,16 +304,15 @@ void printSearchedPrd(Produit *list ,int *index){
 	scanf("%d",&choix);
 	if(choix==1){
 		printf("\t | CODE : ");
-		scanf("%s",codeEntre);
+		scanf("%d",&codeEntre);
 		 //chercheUnPrd(Produit *list ,int *index,int code,int *prdIndex,char chercherPar[]){
-		returnedPrd = chercheUnPrd(list ,index,codeEntre,&prdIndex,"code");
+		returnedPrd = chercheUnPrd(list ,index,codeEntre,prdIndex,"code");
 		//(strcmp(returnedPrd.nom,NULL)==0) ? printSearchedPrd(list,index,prdIndex) : printf("\t-----------       [RESULTATS]     ------------\n");
 				
 	}else if(choix==2){
 		printf("\t | QUANTITE : ");
 		scanf("%d",&qntEntre);
-		sprintf(codeEntre, "%d", qntEntre);// casting 
-		returnedPrd = chercheUnPrd(list ,index,codeEntre,&prdIndex,"quantite");
+		returnedPrd = chercheUnPrd(list ,index,qntEntre,prdIndex,"quantite");
 	}
 	else{
 		printf("\n\tRetour au menu principal...\n\n");
@@ -352,7 +327,7 @@ void printSearchedPrd(Produit *list ,int *index){
 	printf("\t0 : retour au menu \n");
 	printf("\t | ");
 	scanf("%d",&choix);
-	(choix==1) ? printSearchedPrd(list,index) : printf("\n\tRetour au menu principal...\n\n");
+	(choix==1) ? printSearchedPrd(list,index,prdIndex) : printf("\n\tRetour au menu principal...\n\n");
 	sleep(1);
 	
 }
@@ -368,22 +343,20 @@ void afficherEtatDeStock(Produit *list,int *index){
 			j++;
 		}
 	}
-	PrintTableInOrder(tab,&j,3);
-	
+	PrintTableInOrder(tab,&j,1);
 	
 	
 }
 void alimenterLeStock(Produit *list,int *index){
-	char code[20];
-	int i,qntEntre,choix;
+	int i,code,qntEntre,choix;
 	printf("\t             ALIMENTATION DE STOCK              \n");
 	printf(BR);
 	printf("\tCode de produit a alimenter : ");
-	scanf("%s",code);
-	printf("\t quantite a alimenter : ");
+	scanf("%d",&code);
+	printf("\tCode de produit a alimenter : ");
 	scanf("%d",&qntEntre);
 	for(i=0;i<*index;i++){
-		if(strcmp(list[i].code,code)==0){
+		if(list[i].code==code){
 			list[i].quantite+=qntEntre;
 		}
 	}
@@ -396,44 +369,27 @@ void alimenterLeStock(Produit *list,int *index){
 	if(choix==1) alimenterLeStock(list,index);
 	
 }
-
 void supprimerUnProduit(Produit *list ,int *index){
-	char code[20];
-	int i,j,pos=0;
+	int code,i,j,position=0;
 	printf("\t           SUPPRIMER UN PRODUIT              \n");
 	printf(BR);
 	printf("\tCode de produit  | ");
-	scanf("%s",code);
-	
-	printf("\tcode de produit a supprimer : %s",code);
-//	chercheUnPrd(Produit *list ,int *index,char code[],int *prdIndex,char chercherPar[]){
-	//Produit prd =chercheUnPrd(list ,index,code,&pos,"code");
-	//printf("%d",pos);
-	/*if(strcmp(prd.nom,NULL)==0){
+	scanf("%d",&code);
+	Produit prd =chercheUnPrd(list ,index,code,&position,"code");
+	printf("%d",position);
+	if(strcmp(prd.nom,NULL)==0){
 		printf(BR);
 		printf(LINE);
 		printf("\t  [error] :code ne correspond pas a un produit declare  !\n");
 		printf(LINE);
 		supprimerUnProduit(list,index);
 	}else{
-	//	prinft("i am here\n");
-		for (i = pos; i <= *index; i++)  
+		for (i = position-1; i < *index-1; i++)  
         {  
             list[i] = list[i+1]; 
         }
-        --*index;
     	printf("\n\t--------   [supprission faite avec sucess]   -------\n\n");
     	printf(BR);
-	}*/
-	for(i=0;i<*index;i++){
-		if(strcmp(list[i].code,code)==0){
-			for(j=i;j<*index;j++){
-				list[j]=list[j+1];
-			}
-			--*index;
-	    	printf("\n\t--------   [supprission faite avec sucess]   -------\n\n");
-	    	printf(BR);
-		}
 	}
 	
 	
@@ -448,9 +404,9 @@ int main() {
 	
 	// app introdution 
 	printf(BR);
-	printf(MID);
+	printf(LINE);
 	printf("\t|            GESTION DE PHARMACIE                  |\n");
-	printf(MID);
+	printf(LINE);
 	printf(BR);
 	do{
 		//printf("num :%d",num);
@@ -467,7 +423,7 @@ int main() {
 		printf("\t8  : Supprimer un produit.\n");
 		printf("\t9  : Afficher les statistiques de vente.\n");
 		printf(BR);
-		printf(MID);
+		printf(LINE);
 		printf(BR);
 		printf("\tVeulliez selectionez un choix pour continuer... : ");
 		scanf("%d",&choix);
@@ -488,7 +444,7 @@ int main() {
 				acheterUnPrd(listDesProduits,&num,statisticsDeVentes,&indexStst);
 				break;
 			case 5 :
-				printSearchedPrd(listDesProduits,&num);
+				printSearchedPrd(listDesProduits,&num,&i);
 				break;
 			case 6 :
 				afficherEtatDeStock(listDesProduits,&num);
@@ -514,7 +470,7 @@ int main() {
 				printf("\t|              Hope you enjoy usig it              |\n");
 				printf("\t|");
 				printf("\t                                           |\n");
-				printf(MID);
+				printf(LINE);
 				break;
 			default:
 				printf("\tchoix invalid !\n\n");
