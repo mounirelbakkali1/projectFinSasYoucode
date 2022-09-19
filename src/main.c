@@ -105,9 +105,9 @@ void ajouterUnProduit(Produit *list,int *index){
 			continue;
 		}
 		printf("\t*QUANTITE : ");
-		scanf(" %d",&list[*index].quantite);
+		scanf("%d",&list[*index].quantite);
 		printf("\t*PRIX : ");
-		scanf(" %f",&list[*index].prix);
+		scanf("%f",&list[*index].prix);
 		if(list[*index].quantite==0 || list[*index].prix==0) {
 			printf(BR);
 			printf(LINE);
@@ -124,7 +124,13 @@ void ajouterUnProduit(Produit *list,int *index){
 	if(valid) {
 		printf("\n\t--------   [Produit ajoute avec sucess]   -------\n\n");
 		// add to file :
+		printf("%s %s %.2f %d\n", list[*index].nom, list[*index].code, list[*index].prix, list[*index].quantite);
+		fp = fopen("produits.txt","a+");
+        fprintf(fp, "%s %s %f %d\n", list[*index].nom, list[*index].code, list[*index].prix, list[*index].quantite);
+        	//if(getchar() == EOF) brea
 		
+		//printf("%s %s %f %d\n",name,code,price,qnt);
+		fclose(fp);
 		
 		
 		
@@ -451,7 +457,7 @@ void supprimerUnProduit(Produit *list ,int *index){
 int main() {
 	
 	// variable declaration aria 
-	int choix,num=0,indexStst=0,i;
+	int choix,num=-1,indexStst=0,i;
 	Produit listDesProduits[1000];
 	Statistics statisticsDeVentes[1000];
 
@@ -462,18 +468,22 @@ int main() {
  		int qnt;
  		FILE *fp;
         fp = fopen("produits.txt","r");
-        while((c = getchar())  !=EOF){
+        while(1){
+        	if(feof(fp)){
+        		break;
+			}
+        	fscanf(fp, "%s %s %f %d", listDesProduits[num].nom, listDesProduits[num].code, &listDesProduits[num].prix, &listDesProduits[num].quantite);
+        	num++;
         	
-        	fscanf(fp, "%s %s %f %d", name, code, &price, &qnt);
         	//if(getchar() == EOF) break;
 		}
 		
-		printf("%s %s %f %d\n",name,code,price,qnt);
+		//printf("%s %s %f %d\n",name,code,price,qnt);
 		fclose(fp);
          
 	
 	
-	/*
+	
 	
 	// app introdution 
 	printf(BR);
@@ -556,6 +566,6 @@ int main() {
 				
 		}	
 	}while(choix!=0);
-	*/
+	
 	return 0;
 }
