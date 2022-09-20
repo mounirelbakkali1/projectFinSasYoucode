@@ -4,12 +4,36 @@
 #include <stdbool.h>
 #include <ctype.h> // contien to lower()
 #include <time.h>
+#include <windows.h>
+/*#include <stdio_ext.h>  __fpurge(stdin);         */
 #define BR "\n"
 #define TB "\t"
 #define LINE "\t-------------------------------------------------------------\n"
 #define HLINE "\n\t                ---------------          \n\n"
 #define MIDLINE "\t----------------------------------------------------\n"
 #define LongLine "\t----------------------------------------------------------------------------\n"
+
+//COLORING 
+void SetColor(int ForgC){
+     WORD wColor;               
+     //This handle is needed to get the current background attribute
+     
+     HANDLE hStdOut = GetStdHandle(STD_OUTPUT_HANDLE);
+     CONSOLE_SCREEN_BUFFER_INFO csbi;   
+     //csbi is used for wAttributes word
+             
+     if(GetConsoleScreenBufferInfo(hStdOut, &csbi))
+     {
+          //To mask out all but the background attribute, and to add the color
+          wColor = (csbi.wAttributes & 0xF0) + (ForgC & 0x0F);
+          SetConsoleTextAttribute(hStdOut, wColor);
+     }
+    
+}
+
+
+
+
 typedef struct  Produits{
 	char code[20];
 	char nom[20];
@@ -20,13 +44,42 @@ typedef struct  Produits{
 
 typedef struct Statistics{
 	char nomPrdVendu[20];
-	char dateDAchat[20];
+	char dateDAchat[24];
 	float prix;
 	float totalTTC;
 }Statistics;
 
 
-FILE *fp;
+FILE *fp;  // fichier des produits 
+FILE *fs;  // fichier des statistiques
+void updateProductFile(Produit *list ,int *index){
+		fp=freopen(NULL,"w",fp); // pour supprimer tous les données de fichier
+		fclose(fp);	
+		fp = fopen("produits.txt","w");
+			int p=0;
+			while(p<*index){
+				
+				fprintf(fp, "%s %s %.2f %d\n", list[p].nom, list[p].code, list[p].prix, list[p].quantite);
+				p++;	
+			}
+		fclose(fp);	
+			
+}
+void updateStatsFile(Statistics *list ,int *index){
+		fs=freopen(NULL,"w",fs); // pour supprimer tous les données de fichier
+		fclose(fs);	
+		fs = fopen("statistics.txt","w");
+			int p=0;
+		//	if(*index==0) fprintf(fs, "%s %.2f %.2f %.24s\n", list[0].nomPrdVendu, list[0].prix, list[0].totalTTC, list[0].dateDAchat);
+			while(p<*index){
+			//	printf("%f",list[p].totalTTC);
+			//	printf("file updating \n");
+				fprintf(fs, "%s %.2f %.2f %.24s\n", list[p].nomPrdVendu, list[p].prix, list[p].totalTTC, list[p].dateDAchat);
+				p++;	
+			}
+		fclose(fs);	
+			
+}
 bool isExist(Produit *list,char code[20] ,char nom[],int index){
 	bool exist=false;
 	//printf("\ttest de %d \n",code);
@@ -55,12 +108,15 @@ char * toLowerCase(char *str){
 
 void PrintTableInOrder(Produit *list,int *index,int indice){
 	int i,j;
+	        SetColor(2);
 			printf(LINE);
 			if(indice==3){
-				 printf("\t    NOM            |       PRIX TTC      |      QUANTITE     \n");
+				 printf("\t|    NOM            |       PRIX TTC     |      QUANTITE     |\n");
 			}
-			else printf("\t    NOM            |        PRIX           |       PRIX TTC  \n");
+			else printf("\t|    NOM            |        PRIX          |       PRIX TTC  |\n");
 			//printf("--%d\n",*index);
+			printf(LINE);
+			SetColor(3);
 			for(i=0;i<*index;i++){
 				
 				for(j=i+1;j<*index;j++){
@@ -73,19 +129,21 @@ void PrintTableInOrder(Produit *list,int *index,int indice){
 					}
 				}
 				if(indice==3){
-				printf("\t     %s                   %.2f DH                 %d         \n",list[i].nom,calculateTTC(list[i].prix),list[i].quantite);
+				printf("\t     %s                   %.2f DH                 %d          \n",list[i].nom,calculateTTC(list[i].prix),list[i].quantite);
 				}else{
-				printf("\t     %s                   %.2f DH                %.2f DH       \n",list[i].nom,list[i].prix,calculateTTC(list[i].prix));
+				printf("\t     %s                   %.2f DH                %.2f DH        \n",list[i].nom,list[i].prix,calculateTTC(list[i].prix));
 				}			
 			}
+			SetColor(2);
 			printf(LINE);
+			SetColor(3);
 }
 void ajouterUnProduit(Produit *list,int *index){
 	bool valid,essai=0;
 	do{
 		valid=true;
 		printf(HLINE);
-		printf("\tVeullez remplire les informations necessaires %d :\n",*index);
+		printf("\tVeullez remplire les informations necessaires  :\n");
 		printf(BR);
 		printf("\tNotez : Tous les champs sont requis pour valider la formule\n");
 		printf(BR);
@@ -98,7 +156,9 @@ void ajouterUnProduit(Produit *list,int *index){
 		if(isExist(list,list[*index].code,list[*index].nom,*index)){
 			printf(BR);
 			printf(LINE);
+			SetColor(4);
 			printf("\t  [error] :Code ou Nom de produit deja existe !\n");
+			SetColor(3);
 			printf(LINE);
 			printf(BR);
 			valid=false;
@@ -111,7 +171,9 @@ void ajouterUnProduit(Produit *list,int *index){
 		if(list[*index].quantite==0 || list[*index].prix==0) {
 			printf(BR);
 			printf(LINE);
+			SetColor(4);
 			printf("\t   [error] :la quantite ou le prix ne soit pas null !\n");
+			SetColor(3);
 			printf(LINE);
 			printf(BR);
 			valid=false;
@@ -122,11 +184,13 @@ void ajouterUnProduit(Produit *list,int *index){
 		
 	}while(!valid && essai<3);
 	if(valid) {
+		SetColor(2);
 		printf("\n\t--------   [Produit ajoute avec sucess]   -------\n\n");
+		SetColor(3);
 		// add to file :
-		printf("%s %s %.2f %d\n", list[*index].nom, list[*index].code, list[*index].prix, list[*index].quantite);
+		//printf("%s %s %.2f %d\n", list[*index].nom, list[*index].code, list[*index].prix, list[*index].quantite);
 		fp = fopen("produits.txt","a+");
-        fprintf(fp, "%s %s %f %d\n", list[*index].nom, list[*index].code, list[*index].prix, list[*index].quantite);
+        fprintf(fp, "%s %s %.2f %d\n", list[*index].nom, list[*index].code, list[*index].prix, list[*index].quantite);
         	//if(getchar() == EOF) brea
 		
 		//printf("%s %s %f %d\n",name,code,price,qnt);
@@ -139,7 +203,9 @@ void ajouterUnProduit(Produit *list,int *index){
 		++*index;
 	
 	}else{
+		SetColor(4);
 		printf("\t  [error] :coordonees invalid (%essai fois) !\n",essai);
+		SetColor(3);
 	}	
 }
 void ajouterPlusieurPrd(Produit *list,int *index){
@@ -185,7 +251,9 @@ void listerLesProduits(Produit *list,int *index){
 		case 0 :
 			break;
 		default :
+			SetColor(4);
 			printf("\tchoix invalid !\n\n");
+			SetColor(3);
 			printf("\tretour au menu principale...\n\n");
 		//	sleep(1);
 			break;			
@@ -227,7 +295,9 @@ Produit chercheUnPrd(Produit *list ,int *index,char code[],int *prdIndex,char ch
 	}
 	if(!found){
 		printf(BR);
+		SetColor(4);
 		printf("\t-----------       [PAS DE RESULTATS]     ------------\n");
+		SetColor(3);
 		return t;	
 		}
 	
@@ -247,13 +317,17 @@ void acheterUnPrd(Produit *list,int *index,Statistics *stst,int *indexOfstst){
 	printf(BR);
 	printf("\t PRODUIT DESIRE : \n");
 	printf(BR);
-	
 	Produit prdDesire = chercheUnPrd(list,index,code,&prdIndex,"code");
 	float totalTTC=calculateTTC(prdDesire.prix)*quantite;
+	SetColor(2);
 	printf(LongLine);
 	printf("\t NOM          |         PRIX TTC       |       Quantite  |    Total  \n");
-	printf("\t %s                     %.2f DH                %d           %.2f DH     \n",prdDesire.nom,calculateTTC(prdDesire.prix),quantite,totalTTC);
 	printf(LongLine);
+	SetColor(3);
+	printf("\t %s                     %.2f DH                %d           %.2f DH     \n",prdDesire.nom,calculateTTC(prdDesire.prix),quantite,totalTTC);
+	SetColor(2);
+	printf(LongLine);
+	SetColor(3);
 	printf(BR);
 	printf("\t1 : valider la commande \n");
 	printf("\t2 : chercher un nouveau produit \n");
@@ -264,18 +338,28 @@ void acheterUnPrd(Produit *list,int *index,Statistics *stst,int *indexOfstst){
 	if(valider==1){
 		//valider la commande
 		if(prdDesire.quantite>=quantite){
+			SetColor(2);
 			printf("\n\t--------   [Commande valide avec sucess]   -------\n\n");	
+			SetColor(3);
 			time_t dateDachat;
 			dateDachat = time(NULL);
+			//printf("stst index :%d\n",*indexOfstst);
 			//printf("date :%s",ctime(&dateDachat));
-			// ADDING SELL TO STATISTICS
+			// ADDING SELL TO STATISTICS	
 			strcpy(stst[*indexOfstst].dateDAchat,ctime(&dateDachat));
 			strcpy(stst[*indexOfstst].nomPrdVendu,list[prdIndex].nom);
 			stst[*indexOfstst].totalTTC=totalTTC;
 			stst[*indexOfstst].prix=list[prdIndex].prix;
-			++*indexOfstst;
+			
 			// INCREASING QUANTITY AFTER SELL
+			//printf("stast index %d\n",*indexOfstst);
 			list[prdIndex].quantite-=quantite;
+			++*indexOfstst;
+			updateStatsFile(stst,indexOfstst);
+			updateProductFile(list,index);
+			
+			
+			
 			printf("\t1 : acheter un nouveau produit \n");
 			printf("\t0 : retour au menu principal \n");
 			printf("\t | ");
@@ -283,7 +367,9 @@ void acheterUnPrd(Produit *list,int *index,Statistics *stst,int *indexOfstst){
 			(rep==1) ? acheterUnPrd(list,index,stst,indexOfstst) : printf("\n\tRetour au menu principal...\n\n");
 		}else{
 			printf(BR);
+			SetColor(4);
 			printf("\t  [error] :stock insufisant ( %d unitee restant ) !\n",prdDesire.quantite);
+			SetColor(3);
 			printf(BR);
 			printf(HLINE);
 			printf("\t1 : acheter a moin quantite produit / changer le produit \n");
@@ -307,15 +393,22 @@ void afficherLesStatistic(Statistics *stst,int *indexOfstst){
 	printf(BR);
 	printf("\t                  LES STATISTICS                \n");
 	printf(BR);
+	SetColor(2);
 	printf(LongLine);
 	printf("\t    NOM          |      Total TTC    |                   Date            \n");
-	for(i=0;i<*indexOfstst;i++){
+	printf(LongLine);
+	SetColor(3);
+	// I CHANGED I = 0 TO I=1
+	for(i=0;i<*indexOfstst-1;i++){
+		if(stst[i].totalTTC==0) continue;
 		totalttc+=stst[i].totalTTC;
 		if(stst[i].totalTTC>=max)  max=stst[i].totalTTC;
 		if(stst[i].totalTTC<=stst[i+1].totalTTC) min = stst[i].totalTTC;
 		printf("\t   %s                 %.2f                 %s                \n",stst[i].nomPrdVendu,stst[i].totalTTC,stst[i].dateDAchat);
 	}
+	SetColor(2);
 	printf(LongLine);
+	SetColor(3);
 	printf(BR);
 	printf("\tTotal des prix des produits vendus en journee courante : ");
 	printf("%.2f DH\n",totalttc);
@@ -360,9 +453,11 @@ void printSearchedPrd(Produit *list ,int *index,int *prdIndex){
 	else{
 		printf("\n\tRetour au menu principal...\n\n");
 	}
-	
+	SetColor(2);
 	printf(LINE);
 	printf("\t    NOM            |        PRIX           |       PRIX TTC  \n");
+	printf(LINE);
+	SetColor(3);
 	printf("\t     %s                  %.2f DH                %.2f DH       \n",returnedPrd.nom,returnedPrd.prix,calculateTTC(returnedPrd.prix));
 	printf(LINE);
 	printf(BR);
@@ -410,7 +505,10 @@ void alimenterLeStock(Produit *list,int *index){
 			list[i].quantite+=qntEntre;
 		}
 	}
+	SetColor(2);
 	printf("\n\t--------   [alimentation faite avec sucess]   -------\n\n");
+	updateProductFile(list,index);
+	SetColor(3);
 	printf(BR);
 	printf("\t1 : alimenter autre produit \n");
 	printf("\t0 : retour au menu \n");
@@ -438,17 +536,20 @@ void supprimerUnProduit(Produit *list ,int *index){
 	}else{
 		if(position==0&&*index==0) {
 			list[position] = list[position+1]; 
-			--*index;
 		}
 		else{
 			for (i = position; i < *index; i++)  
 	        {  
 	            list[i] = list[i+1]; 
-	        }
-			--*index;	
+	        }	
 		}
-		
+		printf("--%d\n",*index);
+		--*index;
+		printf("%d before call\n",*index);
+		SetColor(2);
     	printf("\n\t--------   [supprission faite avec sucess]   -------\n\n");
+    	SetColor(3);
+    	updateProductFile(list,index);
     	printf(BR);
 	}
 	
@@ -457,7 +558,7 @@ void supprimerUnProduit(Produit *list ,int *index){
 int main() {
 	
 	// variable declaration aria 
-	int choix,num=-1,indexStst=0,i;
+	int choix,num=0,indexStst=0,i;
 	Produit listDesProduits[1000];
 	Statistics statisticsDeVentes[1000];
 
@@ -466,25 +567,32 @@ int main() {
  		char name[20],code[20];
  		float price;
  		int qnt;
- 		FILE *fp;
+ 		//UPLOID DATA FROM FILE 
         fp = fopen("produits.txt","r");
         while(1){
+        	
+		//	printf("%d\n",num);
+        	fscanf(fp, "%s %s %f %d", listDesProduits[num].nom, listDesProduits[num].code, &listDesProduits[num].prix, &listDesProduits[num].quantite);
+        	num++;
         	if(feof(fp)){
         		break;
 			}
-        	fscanf(fp, "%s %s %f %d", listDesProduits[num].nom, listDesProduits[num].code, &listDesProduits[num].prix, &listDesProduits[num].quantite);
-        	num++;
-        	
-        	//if(getchar() == EOF) break;
 		}
-		
-		//printf("%s %s %f %d\n",name,code,price,qnt);
+		num--;
 		fclose(fp);
-         
-	
-	
-	
-	
+		fs = fopen(
+		"statistics.txt","r");
+		do{
+		
+		
+        	fscanf(fs, "%s %f %f %[^\n]s",statisticsDeVentes[indexStst].nomPrdVendu, &statisticsDeVentes[indexStst].prix, &statisticsDeVentes[indexStst].totalTTC, statisticsDeVentes[indexStst].dateDAchat);
+        	indexStst++;
+        	if(feof(fs)){
+        		break;  
+			}
+			
+		}while(1);	
+	SetColor(2);
 	// app introdution 
 	printf(BR);
 	printf(MIDLINE);
@@ -493,10 +601,12 @@ int main() {
 	printf("\t|                  By mounir                       |\n");
 	printf(MIDLINE);
 	printf(BR);
+	SetColor(1);
 	do{
 		//printf("num :%d",num);
 		printf(BR);
 		printf("\t----------------- MENU PRINCIPAL -------------------\n");
+		SetColor(3);
 		printf(BR);
 		printf("\t1  : Ajouter un nouveau produit.\n");
 		printf("\t2  : Ajouter plusieurs nouveaux produits.\n");
@@ -509,7 +619,9 @@ int main() {
 		printf("\t9  : Afficher les statistiques de vente.\n\n");
 		printf("\t0  : Sortir de program.\n");
 		printf(BR);
+		SetColor(1);
 		printf(MIDLINE);
+		SetColor(3);
 		printf(BR);
 		printf("\tVeulliez selectionez un choix pour continuer... : ");
 		scanf("%d",&choix);
@@ -545,6 +657,7 @@ int main() {
 				afficherLesStatistic(statisticsDeVentes,&indexStst);
 				break;
 				
+				
 			case 0 :
 				printf(BR);
 				printf("\tfermeture de program..");
@@ -559,9 +672,11 @@ int main() {
 				printf(MIDLINE);
 				break;
 			default:
+			//	__fpurge(stdin);
 				printf("\tchoix invalid !\n\n");
 				printf("\tretour au menu principale...\n\n");
 				sleep(1);
+				
 				break;
 				
 		}	
